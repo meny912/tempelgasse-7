@@ -1,7 +1,7 @@
 'use strict';
 /* Tempelgasse 7 — its OWN Supabase project, separate from every other system. */
-const SB='__SB_URL__';
-const KEY='__SB_KEY__';
+const SB='https://vlopyngsxljvitgkarnd.supabase.co';
+const KEY='sb_publishable_HoReQXimZM4tfyVz93BPpg_pLdspg_D';
 
 /* ---------------- Texte (nur Deutsch) ---------------- */
 const T={
