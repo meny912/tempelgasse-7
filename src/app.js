@@ -97,7 +97,9 @@ const IC={
  mic:'M12 3a3 3 0 0 0-3 3v5.5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7',
  bulb:'M9.2 18h5.6M10 21h4M12 3a6 6 0 0 0-3.8 10.6c.6.5 1 1.3 1 2.1v.3h5.6v-.3c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3z',
  shield:'M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z',
- speaker:'M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11'
+ speaker:'M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11',
+ eye:'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6',
+ eyeoff:'M3.5 3.5l17 17M10 5.7c.6-.1 1.3-.2 2-.2 6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.8 3.6M6.4 6.9C3.9 8.6 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.7 0 3.2-.5 4.5-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2'
 };
 function ic(n,c){return `<svg class="ic ${c||''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]||IC.help}"/></svg>`}
 const SEND_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6v6.5L15 12 3.4 13.9z"/></svg>';
@@ -276,6 +278,9 @@ let _bar='';function setBar(chat){if(!NATIVE)return;const k=chat?'chat':'page';i
   SBp.setBackgroundColor&&SBp.setBackgroundColor({color:chat?'#008069':'#f6f4ef'}).catch(()=>{})}catch(e){}}
 function go(k){S.tab=k;ls('t7_tab',k);if(k==='reports')S.rMoves=null;render();$('#main')&&($('#main').scrollTop=0);if(k==='chat')startPoll()}
 function view(){return({chat:chatView,issues:issuesView,ideas:ideasView,stock:stockView,units:unitsView,reports:reportsView,settings:settingsView}[S.tab]||chatView)()}
+/* Code fields: an eye button shows / hides what was typed. */
+function pw(input){return `<div class="pw">${input}<button type="button" class="eyeb" aria-label="Code anzeigen" onclick="togglePw(this)">${ic('eye')}</button></div>`}
+function togglePw(b){const i=b.parentNode.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';b.innerHTML=ic(show?'eyeoff':'eye');b.setAttribute('aria-label',show?'Code verbergen':'Code anzeigen');i.focus()}
 function sheadX(title){return `<div class="shead"><h3>${title}</h3><button class="xbtn" onclick="closeSheet()" aria-label="${esc(t('cancel'))}">${ic('x')}</button></div>`}
 function searchBox(val,handler){return `<div class="search"><div class="box">${ic('search','s')}<input placeholder="${esc(t('search'))}" value="${esc(val)}" oninput="${handler}"></div></div>`}
 function sheet(html){closeSheet();const bg=document.createElement('div');bg.className='sheetbg';bg.innerHTML=`<div class="sheet"><div class="grab"></div>${html}</div>`;
@@ -288,13 +293,13 @@ function loginView(){const st=S.loginMode==='staff';return `<main style="padding
  <div class="seg"><button class="${st?'on':''}" onclick="S.loginMode='staff';S.err='';render()">${esc(t('staff'))}</button><button class="${st?'':'on'}" onclick="S.loginMode='manager';S.err='';render();checkManager()">${esc(t('manager'))}</button></div>
  ${st?`
   <label class="f">${esc(t('yourName'))}</label><input class="inp" id="lName" autocomplete="given-name" value="${esc(ls('t7_name')||'')}">
-  <label class="f">${esc(t('teamCode'))}</label><input class="inp" id="lPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">
+  <label class="f">${esc(t('teamCode'))}</label>${pw(`<input class="inp" id="lPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">`)}
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="staffLogin()">${esc(t('login'))}</button>`:`
   ${S.hasManager===false?`<div class="okmsg" style="margin:0 0 4px">${esc(t('firstMgr'))}</div>`:''}
   <label class="f">${esc(t('yourName'))}</label><input class="inp" id="mName" autocomplete="given-name" value="${esc(S.mName??ls('t7_mname')??'')}">
-  <label class="f">${esc(t('adminCode'))}</label><input class="inp" id="mPass" type="password" inputmode="numeric" autocomplete="${S.hasManager===false?'new-password':'current-password'}" onkeydown="if(event.key==='Enter'&&!document.getElementById('mPass2'))managerLogin()">
-  ${S.hasManager===false?`<label class="f">${esc(t('repeatCode'))}</label><input class="inp" id="mPass2" type="password" inputmode="numeric" autocomplete="new-password" onkeydown="if(event.key==='Enter')managerLogin()">`:''}
+  <label class="f">${esc(t('adminCode'))}</label>${pw(`<input class="inp" id="mPass" type="password" inputmode="numeric" autocomplete="${S.hasManager===false?'new-password':'current-password'}" onkeydown="if(event.key==='Enter'&&!document.getElementById('mPass2'))managerLogin()">`)}
+  ${S.hasManager===false?`<label class="f">${esc(t('repeatCode'))}</label>${pw(`<input class="inp" id="mPass2" type="password" inputmode="numeric" autocomplete="new-password" onkeydown="if(event.key==='Enter')managerLogin()">`)}`:''}
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="managerLogin()">${esc(t(S.hasManager===false?'createMgr':'login'))}</button>`}
  ${NATIVE?'':`<div class="hint">${esc(t('installHint'))}</div>`}</div></main>`}
@@ -569,7 +574,7 @@ function settingsView(){const mgr=S.me.role==='manager';return `
   <label class="row" style="margin-top:12px;font-size:14px;color:var(--ink2)"><input type="checkbox" id="spKick"> ${esc(t('kick'))}</label>
   <div id="spMsg"></div><button class="btn block" style="margin-top:14px" onclick="setStaffPass()">${esc(t('setPass'))}</button></div>
  <div class="sec">${ic('lock','s')}${esc(t('mgrLogin'))}</div><div class="card">
-  <label class="f" style="margin-top:0">${esc(t('newCode'))}</label><input class="inp" id="mlPass" type="password" inputmode="numeric" autocomplete="new-password">
+  <label class="f" style="margin-top:0">${esc(t('newCode'))}</label>${pw(`<input class="inp" id="mlPass" type="password" inputmode="numeric" autocomplete="new-password">`)}
   <div id="mlMsg"></div><button class="btn block" style="margin-top:14px" onclick="setMgrLogin()">${esc(t('save'))}</button></div>`:''}
  ${NATIVE?'':`<div class="sec">${ic('phone','s')}${esc(t('install'))}</div><div class="card mute" style="line-height:1.55">${esc(t('installHint'))}</div>`}
  <button class="btn danger block" style="margin-top:18px" onclick="logout()">${ic('logout','s')}${esc(t('logout'))}</button>
