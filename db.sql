@@ -90,7 +90,7 @@ begin
   perform pg_advisory_xact_lock(4711);
   if exists(select 1 from ops_settings where k='mgr_pass') then raise exception 'ops:hasmgr'; end if;
   if length(trim(coalesce(p_user,''))) < 3 then raise exception 'ops:name'; end if;
-  if length(coalesce(p_pass,'')) < 8 then raise exception 'ops:short8'; end if;
+  if length(coalesce(p_pass,'')) < 4 then raise exception 'ops:short8'; end if;
   insert into ops_settings(k, v) values ('mgr_user', lower(trim(p_user)));
   insert into ops_settings(k, v) values ('mgr_pass', crypt(p_pass, gen_salt('bf')));
   insert into ops_sessions(name, role) values (coalesce(nullif(left(trim(p_name),40),''),'Admin'), 'manager') returning token into t;
@@ -116,7 +116,7 @@ returns void language plpgsql security definer set search_path = public, extensi
 begin
   perform ops_sess(p_token, 'manager');
   if length(trim(coalesce(p_user,''))) < 3 then raise exception 'ops:name'; end if;
-  if length(coalesce(p_pass,'')) < 8 then raise exception 'ops:short8'; end if;
+  if length(coalesce(p_pass,'')) < 4 then raise exception 'ops:short8'; end if;
   insert into ops_settings(k, v) values ('mgr_user', lower(trim(p_user))) on conflict (k) do update set v = excluded.v;
   insert into ops_settings(k, v) values ('mgr_pass', crypt(p_pass, gen_salt('bf'))) on conflict (k) do update set v = excluded.v;
 end $$;

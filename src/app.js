@@ -5,10 +5,10 @@ const KEY='sb_publishable_HoReQXimZM4tfyVz93BPpg_pLdspg_D';
 
 /* ---------------- Texte (nur Deutsch) ---------------- */
 const T={
- app:'Tempelgasse 7',staff:'Team',manager:'Admin',yourName:'Dein Name',password:'Passwort',username:'Benutzername',login:'Anmelden',logout:'Abmelden',
- firstMgr:'Erster Start: Lege hier Benutzername und Passwort für den Admin an.',repeatPass:'Passwort wiederholen',mismatch:'Die Passwörter stimmen nicht überein',
+ app:'Tempelgasse 7',staff:'Team',manager:'Admin',yourName:'Dein Name',password:'Passwort',code:'Code',teamCode:'Team-Code',adminCode:'Admin-Code',repeatCode:'Code wiederholen',newCode:'Neuer Code',username:'Benutzername',login:'Anmelden',logout:'Abmelden',
+ firstMgr:'Erster Start: Lege hier den Admin-Code fest (mind. 4 Zeichen).',repeatPass:'Passwort wiederholen',mismatch:'Die Codes stimmen nicht überein',
  createMgr:'Admin anlegen & anmelden',hasMgr:'Es gibt schon einen Admin — bitte anmelden',noMgr:'Noch kein Admin angelegt',
- mgrLogin:'Admin-Anmeldung',short8:'Passwort zu kurz (mind. 8 Zeichen)',short:'Passwort zu kurz (mind. 4 Zeichen)',displayName:'Angezeigter Name',
+ mgrLogin:'Admin-Code',short8:'Code zu kurz (mind. 4 Zeichen)',short:'Code zu kurz (mind. 4 Zeichen)',displayName:'Angezeigter Name',
  chat:'Chat',issues:'Meldungen',ideas:'Ideen',stock:'Lager',units:'Räume',reports:'Berichte',settings:'Mehr',
  typeMsg:'Nachricht schreiben…',camera:'Kamera',gallery:'Galerie',send:'Senden',noMsgs:'Noch keine Nachrichten.',
  newIssue:'Problem melden',open:'Offen',progress:'In Arbeit',done:'Erledigt',all:'Alle',room:'Raum',noRoom:'— Allgemein / kein bestimmter Raum —',topic:'Thema',
@@ -32,10 +32,10 @@ const T={
  delRoomQ:'Raum entfernen? Alte Meldungen behalten den Namen.',
  from:'Von',to:'Bis',taken:'Genommen',returned:'Zurück',broken:'Kaputt',added:'Eingekauft',item:'Artikel',
  csv:'Für Excel herunterladen (CSV)',avgFix:'Ø Bearbeitungszeit',issuesOpen:'Offene Meldungen',issuesDone:'Erledigt im Zeitraum',moves:'Lagerbewegungen',ideasNew:'Neue Ideen',
- staffPass:'Team-Passwort',staffPassHint:'Ein Passwort für das ganze Team. Jeder gibt beim Anmelden seinen eigenen Namen ein.',newPass:'Neues Passwort',
- kick:'Alle Team-Mitglieder abmelden',setPass:'Passwort setzen',noPassYet:'Noch kein Team-Passwort gesetzt — bitte hier festlegen, damit sich das Team anmelden kann.',
+ staffPass:'Team-Code',staffPassHint:'Ein Code für das ganze Team. Jeder gibt beim Anmelden seinen eigenen Namen ein.',newPass:'Neuer Code',
+ kick:'Alle Team-Mitglieder abmelden',setPass:'Code speichern',noPassYet:'Noch kein Team-Code gesetzt — bitte hier festlegen, damit sich das Team anmelden kann.',
  install:'Auf dem Handy installieren',installHint:'iPhone: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → ⋮ → „Zum Startbildschirm hinzufügen“.',
- wrong:'Falsches Passwort',needName:'Bitte Namen eingeben',noPass:'Der Admin hat noch kein Team-Passwort gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',
+ wrong:'Falscher Code',needName:'Bitte Namen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -148,7 +148,7 @@ async function staffLogin(){
  try{const tok=await rpc('ops_staff_login',{p_name:name,p_pass:pass});await afterLogin(tok)}
  catch(e){S.err=e.message;S.busy=false;render()}}
 async function managerLogin(){
- const u=$('#mUser').value.trim(),pass=$('#mPass').value,dn=$('#mName').value.trim()||'Admin';S.mUser=u;S.mName=$('#mName').value;
+ const u='admin',pass=$('#mPass').value,dn=$('#mName').value.trim()||'Admin';S.mName=$('#mName').value;
  const setup=S.hasManager===false;
  if(setup&&pass!==$('#mPass2').value){S.err=t('mismatch');render();return}
  S.busy=true;S.err='';render();
@@ -287,13 +287,12 @@ function loginView(){const st=S.loginMode==='staff';return `<main style="padding
  <div class="seg"><button class="${st?'on':''}" onclick="S.loginMode='staff';S.err='';render()">${esc(t('staff'))}</button><button class="${st?'':'on'}" onclick="S.loginMode='manager';S.err='';render();checkManager()">${esc(t('manager'))}</button></div>
  ${st?`
   <label class="f">${esc(t('yourName'))}</label><input class="inp" id="lName" autocomplete="name" value="${esc(ls('t7_name')||'')}">
-  <label class="f">${esc(t('password'))}</label><input class="inp" id="lPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">
+  <label class="f">${esc(t('teamCode'))}</label><input class="inp" id="lPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="staffLogin()">${esc(t('login'))}</button>`:`
   ${S.hasManager===false?`<div class="okmsg" style="margin:0 0 4px">${esc(t('firstMgr'))}</div>`:''}
-  <label class="f">${esc(t('username'))}</label><input class="inp" id="mUser" autocapitalize="none" autocomplete="username" value="${esc(S.mUser||'')}">
-  <label class="f">${esc(t('password'))}</label><input class="inp" id="mPass" type="password" autocomplete="${S.hasManager===false?'new-password':'current-password'}">
-  ${S.hasManager===false?`<label class="f">${esc(t('repeatPass'))}</label><input class="inp" id="mPass2" type="password" autocomplete="new-password">`:''}
+  <label class="f">${esc(t('adminCode'))}</label><input class="inp" id="mPass" type="password" inputmode="numeric" autocomplete="${S.hasManager===false?'new-password':'current-password'}">
+  ${S.hasManager===false?`<label class="f">${esc(t('repeatCode'))}</label><input class="inp" id="mPass2" type="password" inputmode="numeric" autocomplete="new-password">`:''}
   <label class="f">${esc(t('displayName'))}</label><input class="inp" id="mName" value="${esc(S.mName??ls('t7_mname')??'')}" placeholder="Admin" onkeydown="if(event.key==='Enter')managerLogin()">
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="managerLogin()">${esc(t(S.hasManager===false?'createMgr':'login'))}</button>`}
@@ -569,14 +568,13 @@ function settingsView(){const mgr=S.me.role==='manager';return `
   <label class="row" style="margin-top:12px;font-size:14px;color:var(--ink2)"><input type="checkbox" id="spKick"> ${esc(t('kick'))}</label>
   <div id="spMsg"></div><button class="btn block" style="margin-top:14px" onclick="setStaffPass()">${esc(t('setPass'))}</button></div>
  <div class="sec">${ic('lock','s')}${esc(t('mgrLogin'))}</div><div class="card">
-  <label class="f" style="margin-top:0">${esc(t('username'))}</label><input class="inp" id="mlUser" autocapitalize="none" autocomplete="off" value="${esc(S.me.mgr_user||'')}">
-  <label class="f">${esc(t('newPass'))}</label><input class="inp" id="mlPass" type="password" autocomplete="new-password">
+  <label class="f" style="margin-top:0">${esc(t('newCode'))}</label><input class="inp" id="mlPass" type="password" inputmode="numeric" autocomplete="new-password">
   <div id="mlMsg"></div><button class="btn block" style="margin-top:14px" onclick="setMgrLogin()">${esc(t('save'))}</button></div>`:''}
  ${NATIVE?'':`<div class="sec">${ic('phone','s')}${esc(t('install'))}</div><div class="card mute" style="line-height:1.55">${esc(t('installHint'))}</div>`}
  <button class="btn danger block" style="margin-top:18px" onclick="logout()">${ic('logout','s')}${esc(t('logout'))}</button>
  <p class="mute" style="text-align:center;margin-top:22px;font-size:12px;letter-spacing:.08em">TEMPELGASSE 7 · TEAM · V1</p>`}
-async function setMgrLogin(){const u=$('#mlUser').value.trim(),p=$('#mlPass').value;
- try{await api('ops_set_manager_login',{p_user:u,p_pass:p});S.me.mgr_user=u.toLowerCase();$('#mlPass').value='';$('#mlMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}
+async function setMgrLogin(){const u='admin',p=$('#mlPass').value;
+ try{await api('ops_set_manager_login',{p_user:u,p_pass:p});$('#mlPass').value='';$('#mlMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}
  catch(e){$('#mlMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
 async function setStaffPass(){const p=$('#spPass').value.trim();
  try{await api('ops_set_staff_pass',{p_pass:p,p_kick:$('#spKick').checked});S.me.has_pass=true;$('#spPass').value='';$('#spMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}
