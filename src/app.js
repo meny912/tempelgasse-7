@@ -5,7 +5,7 @@ const KEY='sb_publishable_HoReQXimZM4tfyVz93BPpg_pLdspg_D';
 
 /* ---------------- Texte (nur Deutsch) ---------------- */
 const T={
- app:'Tempelgasse 7',staff:'Team',manager:'Admin',yourName:'Dein Name',password:'Passwort',code:'Code',teamCode:'Team-Code',adminCode:'Admin-Code',repeatCode:'Code wiederholen',newCode:'Neuer Code',username:'Benutzername',login:'Anmelden',logout:'Abmelden',
+ app:'Tempelgasse 7',staff:'Team',manager:'Admin',yourName:'Dein Vorname',password:'Passwort',code:'Code',teamCode:'Team-Code',adminCode:'Admin-Code',repeatCode:'Code wiederholen',newCode:'Neuer Code',username:'Benutzername',login:'Anmelden',logout:'Abmelden',
  firstMgr:'Erster Start: Lege hier den Admin-Code fest (mind. 4 Zeichen).',repeatPass:'Passwort wiederholen',mismatch:'Die Codes stimmen nicht überein',
  createMgr:'Admin anlegen & anmelden',hasMgr:'Es gibt schon einen Admin — bitte anmelden',noMgr:'Noch kein Admin angelegt',
  mgrLogin:'Admin-Code',short8:'Code zu kurz (mind. 4 Zeichen)',short:'Code zu kurz (mind. 4 Zeichen)',displayName:'Angezeigter Name',
@@ -35,7 +35,7 @@ const T={
  staffPass:'Team-Code',staffPassHint:'Ein Code für das ganze Team. Jeder gibt beim Anmelden seinen eigenen Namen ein.',newPass:'Neuer Code',
  kick:'Alle Team-Mitglieder abmelden',setPass:'Code speichern',noPassYet:'Noch kein Team-Code gesetzt — bitte hier festlegen, damit sich das Team anmelden kann.',
  install:'Auf dem Handy installieren',installHint:'iPhone: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → ⋮ → „Zum Startbildschirm hinzufügen“.',
- wrong:'Falscher Code',needName:'Bitte Namen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
+ wrong:'Falscher Code',needName:'Bitte deinen Vornamen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -148,7 +148,8 @@ async function staffLogin(){
  try{const tok=await rpc('ops_staff_login',{p_name:name,p_pass:pass});if(!tok)throw new Error(t('wrong'));await afterLogin(tok)}
  catch(e){S.err=e.message;S.busy=false;render()}}
 async function managerLogin(){
- const u='admin',pass=$('#mPass').value,dn=$('#mName').value.trim()||'Admin';S.mName=$('#mName').value;
+ const u='admin',pass=$('#mPass').value,dn=$('#mName').value.trim();S.mName=$('#mName').value;ls('t7_mname',dn);
+ if(!dn){S.err=t('needName');render();return}
  const setup=S.hasManager===false;
  if(setup&&pass!==$('#mPass2').value){S.err=t('mismatch');render();return}
  S.busy=true;S.err='';render();
@@ -286,14 +287,14 @@ function loginView(){const st=S.loginMode==='staff';return `<main style="padding
  <div class="brand"><div class="mark">Tempelgasse 7</div><div class="rule"></div><div class="sub">Team</div></div>
  <div class="seg"><button class="${st?'on':''}" onclick="S.loginMode='staff';S.err='';render()">${esc(t('staff'))}</button><button class="${st?'':'on'}" onclick="S.loginMode='manager';S.err='';render();checkManager()">${esc(t('manager'))}</button></div>
  ${st?`
-  <label class="f">${esc(t('yourName'))}</label><input class="inp" id="lName" autocomplete="name" value="${esc(ls('t7_name')||'')}">
+  <label class="f">${esc(t('yourName'))}</label><input class="inp" id="lName" autocomplete="given-name" value="${esc(ls('t7_name')||'')}">
   <label class="f">${esc(t('teamCode'))}</label><input class="inp" id="lPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="staffLogin()">${esc(t('login'))}</button>`:`
   ${S.hasManager===false?`<div class="okmsg" style="margin:0 0 4px">${esc(t('firstMgr'))}</div>`:''}
-  <label class="f">${esc(t('adminCode'))}</label><input class="inp" id="mPass" type="password" inputmode="numeric" autocomplete="${S.hasManager===false?'new-password':'current-password'}">
-  ${S.hasManager===false?`<label class="f">${esc(t('repeatCode'))}</label><input class="inp" id="mPass2" type="password" inputmode="numeric" autocomplete="new-password">`:''}
-  <label class="f">${esc(t('displayName'))}</label><input class="inp" id="mName" value="${esc(S.mName??ls('t7_mname')??'')}" placeholder="Admin" onkeydown="if(event.key==='Enter')managerLogin()">
+  <label class="f">${esc(t('yourName'))}</label><input class="inp" id="mName" autocomplete="given-name" value="${esc(S.mName??ls('t7_mname')??'')}">
+  <label class="f">${esc(t('adminCode'))}</label><input class="inp" id="mPass" type="password" inputmode="numeric" autocomplete="${S.hasManager===false?'new-password':'current-password'}" onkeydown="if(event.key==='Enter'&&!document.getElementById('mPass2'))managerLogin()">
+  ${S.hasManager===false?`<label class="f">${esc(t('repeatCode'))}</label><input class="inp" id="mPass2" type="password" inputmode="numeric" autocomplete="new-password" onkeydown="if(event.key==='Enter')managerLogin()">`:''}
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
   <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="managerLogin()">${esc(t(S.hasManager===false?'createMgr':'login'))}</button>`}
  ${NATIVE?'':`<div class="hint">${esc(t('installHint'))}</div>`}</div></main>`}
