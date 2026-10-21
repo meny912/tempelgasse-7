@@ -35,7 +35,7 @@ const T={
  staffPass:'Team-Code',staffPassHint:'Ein Code für das ganze Team. Jeder gibt beim Anmelden seinen eigenen Namen ein.',newPass:'Neuer Code',
  kick:'Alle Team-Mitglieder abmelden',setPass:'Code speichern',noPassYet:'Noch kein Team-Code gesetzt — bitte hier festlegen, damit sich das Team anmelden kann.',
  install:'Auf dem Handy installieren',installHint:'iPhone: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → ⋮ → „Zum Startbildschirm hinzufügen“.',
- wrong:'Falscher Code',needName:'Bitte Namen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',
+ wrong:'Falscher Code',needName:'Bitte Namen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -135,7 +135,7 @@ async function rpc(fn,args){
  const txt=await r.text();let d=null;try{d=txt?JSON.parse(txt):null}catch(e){}
  if(!r.ok){const m=(d&&(d.message||d.hint))||txt||'';
   if(m.includes('ops:auth')){signOutLocal();throw new Error('')}
-  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty'};
+  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty','ops:locked':'locked'};
   const k=Object.keys(map).find(x=>m.includes(x));throw new Error(k?t(map[k]):(m||t('netErr')))}
  return d}
 const api=(fn,args)=>rpc(fn,Object.assign({p_token:S.token},args||{}));
@@ -145,7 +145,7 @@ async function staffLogin(){
  const name=$('#lName').value.trim(),pass=$('#lPass').value;ls('t7_name',name);
  if(!name){S.err=t('needName');render();return}
  S.busy=true;S.err='';render();
- try{const tok=await rpc('ops_staff_login',{p_name:name,p_pass:pass});await afterLogin(tok)}
+ try{const tok=await rpc('ops_staff_login',{p_name:name,p_pass:pass});if(!tok)throw new Error(t('wrong'));await afterLogin(tok)}
  catch(e){S.err=e.message;S.busy=false;render()}}
 async function managerLogin(){
  const u='admin',pass=$('#mPass').value,dn=$('#mName').value.trim()||'Admin';S.mName=$('#mName').value;
@@ -153,7 +153,7 @@ async function managerLogin(){
  if(setup&&pass!==$('#mPass2').value){S.err=t('mismatch');render();return}
  S.busy=true;S.err='';render();
  try{const tok=setup?await rpc('ops_manager_setup',{p_user:u,p_pass:pass,p_name:dn}):await rpc('ops_manager_pass_login',{p_user:u,p_pass:pass,p_name:dn});
-  ls('t7_mname',dn);await afterLogin(tok)}
+  if(!tok)throw new Error(t('wrong'));ls('t7_mname',dn);await afterLogin(tok)}
  catch(e){S.err=e.message||t('netErr');S.busy=false;if(e.message===t('noMgr'))S.hasManager=false;render()}}
 async function checkManager(){try{const st=await rpc('ops_status',{});S.hasManager=!!st.has_manager}catch(e){S.hasManager=null}render()}
 async function afterLogin(tok){S.token=tok;ls('t7_token',tok);S.busy=false;S.err='';await boot()}

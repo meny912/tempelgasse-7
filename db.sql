@@ -46,8 +46,11 @@ create table if not exists ops_messages (
   issue_id bigint references ops_issues(id), idea_id bigint references ops_ideas(id), sys text,
   at timestamptz not null default now());
 
+-- failed sign-in attempts (for the lockout: 10 wrong codes in 15 minutes = 15 minutes locked)
+create table if not exists ops_fails (id bigserial primary key, kind text not null, at timestamptz not null default now());
+
 do $$ declare t text; begin
-  foreach t in array array['ops_rooms','ops_settings','ops_sessions','ops_files','ops_items','ops_moves','ops_issues','ops_ideas','ops_messages'] loop
+  foreach t in array array['ops_fails','ops_rooms','ops_settings','ops_sessions','ops_files','ops_items','ops_moves','ops_issues','ops_ideas','ops_messages'] loop
     execute format('alter table %I enable row level security', t);
     execute format('revoke all on %I from anon, authenticated', t);
   end loop;
@@ -73,7 +76,12 @@ begin
   if coalesce(trim(p_name),'') = '' then raise exception 'ops:name'; end if;
   select v into h from ops_settings where k = 'staff_pass';
   if h is null then raise exception 'ops:nopass'; end if;
-  if crypt(coalesce(p_pass,''), h) <> h then perform pg_sleep(1.5); raise exception 'ops:badpass'; end if;
+  if (select count(*) from ops_fails where kind='staff' and at > now() - interval '15 minutes') >= 10 then raise exception 'ops:locked'; end if;
+  -- wrong code: remember the attempt and return null (raising would undo the insert)
+  if crypt(coalesce(p_pass,''), h) <> h then
+    delete from ops_fails where at < now() - interval '1 day';
+    insert into ops_fails(kind) values ('staff'); perform pg_sleep(1.5); return null;
+  end if;
   insert into ops_sessions(name, role) values (left(trim(p_name), 40), 'staff') returning token into t;
   return t;
 end $$;
@@ -104,8 +112,10 @@ begin
   select v into u from ops_settings where k = 'mgr_user';
   select v into h from ops_settings where k = 'mgr_pass';
   if u is null or h is null then raise exception 'ops:nomgr'; end if;
+  if (select count(*) from ops_fails where kind='mgr' and at > now() - interval '15 minutes') >= 10 then raise exception 'ops:locked'; end if;
   if lower(trim(coalesce(p_user,''))) <> u or crypt(coalesce(p_pass,''), h) <> h then
-    perform pg_sleep(1.5); raise exception 'ops:badpass';
+    delete from ops_fails where at < now() - interval '1 day';
+    insert into ops_fails(kind) values ('mgr'); perform pg_sleep(1.5); return null;
   end if;
   insert into ops_sessions(name, role) values (coalesce(nullif(left(trim(p_name),40),''),'Admin'), 'manager') returning token into t;
   return t;
