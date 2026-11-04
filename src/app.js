@@ -35,7 +35,18 @@ const T={
  staffPass:'Team-Code',staffPassHint:'Ein Code für das ganze Team. Jeder gibt beim Anmelden seinen eigenen Namen ein.',newPass:'Neuer Code',
  kick:'Alle Team-Mitglieder abmelden',setPass:'Code speichern',noPassYet:'Noch kein Team-Code gesetzt — bitte hier festlegen, damit sich das Team anmelden kann.',
  install:'Auf dem Handy installieren',installHint:'iPhone: Safari → Teilen → „Zum Home-Bildschirm“. Android: Chrome → ⋮ → „Zum Startbildschirm hinzufügen“.',
- wrong:'Falscher Code',needName:'Bitte deinen Vornamen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
+ wrong:'Falscher Code',needName:'Bitte deinen Vornamen eingeben',noPass:'Der Admin hat noch keinen Team-Code gesetzt',netErr:'Keine Verbindung. Bitte erneut versuchen.',forbidden:'Keine Berechtigung',gabbai:'Gabbai',gabbaiCode:'Gabbai-Code',members:'Mitglieder',mails:'E-Mails',noGabbai:'Der Admin hat noch keinen Gabbai-Code gesetzt',
+ gabbaiPass:'Gabbai-Code',gabbaiHint:'Nur mit diesem Code sieht man die Mitgliederliste und die offenen Beträge. Team und Admin sehen sie nicht.',gabbaiSet:'Gabbai-Code ist gesetzt',gabbaiNotSet:'Noch kein Gabbai-Code gesetzt',
+ newMember:'Neues Mitglied',editMember:'Mitglied bearbeiten',email:'E-Mail',phone:'Telefon',memberNote:'Notiz',delMemberQ:'Mitglied entfernen? Die Einträge bleiben gespeichert.',noMembers:'Noch keine Mitglieder',
+ open2:'Offen',allMembers:'Alle',totalOpen:'Insgesamt offen',balance:'Offen',credit:'Guthaben',settled:'Ausgeglichen',noEmail:'keine E-Mail',
+ addCharge:'Betrag eintragen',addPayment:'Zahlung eintragen',charge:'Betrag',payment:'Zahlung',what:'Wofür? (z. B. Alija, Kiddusch)',payWhat:'Notiz (z. B. Überweisung, bar)',date:'Datum',
+ history2:'Verlauf',noEntries:'Noch keine Einträge',delEntryQ:'Diesen Eintrag löschen?',badEmail:'Ungültige E-Mail-Adresse',badAmount:'Bitte einen Betrag eingeben',
+ mailLog:'Gesendete E-Mails',noMails:'Noch keine E-Mails gesendet',sendNow:'Jetzt Erinnerungen senden',sendNowQ:'Jetzt an alle mit offenem Betrag und E-Mail senden',sentN:'E-Mails werden gesendet',
+ nobodyOpen:'Niemand mit offenem Betrag und E-Mail-Adresse',autoInfo:'Automatisch am 1. jedes Monats um ca. 9 Uhr — nur an Mitglieder mit offenem Betrag. Wer nichts offen hat, bekommt keine E-Mail.',
+ mailSettings:'E-Mail-Versand',fromName:'Absender-Name',fromEmail:'Absender-E-Mail (bei Brevo bestätigt)',payInfo:'Zahlungsinfo im E-Mail (z. B. IBAN)',monthlyOn:'Monatliche Erinnerung aktiv',
+ provider:'Mail-Dienst',keyOk:'API-Schlüssel ist hinterlegt',keyMissing:'API-Schlüssel fehlt noch (wird einmalig in Supabase → Vault als „mail_api_key“ eingetragen)',
+ testMail:'Test-E-Mail senden an',sendTest:'Test senden',testSent:'Test-E-Mail wird gesendet',noKey:'Der Mail-Dienst ist noch nicht eingerichtet (API-Schlüssel fehlt)',noFrom:'Bitte zuerst die Absender-E-Mail eintragen',
+ stSent:'Gesendet',stPending:'Wird gesendet',stError:'Fehler',stUnknown:'Unklar',kMonthly:'Monatlich',kManual:'Manuell',kTest:'Test',lastMail:'Letzte E-Mail',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -98,6 +109,8 @@ const IC={
  bulb:'M9.2 18h5.6M10 21h4M12 3a6 6 0 0 0-3.8 10.6c.6.5 1 1.3 1 2.1v.3h5.6v-.3c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3z',
  shield:'M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z',
  speaker:'M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11',
+ mail:'M3.5 6h17v12h-17zM3.5 6.5l8.5 6.5 8.5-6.5',
+ euro:'M17.5 6.5a6.5 6.5 0 1 0 0 11M4.5 10.5h9M4.5 13.5h9',
  eye:'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6',
  eyeoff:'M3.5 3.5l17 17M10 5.7c.6-.1 1.3-.2 2-.2 6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.8 3.6M6.4 6.9C3.9 8.6 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.7 0 3.2-.5 4.5-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2'
 };
@@ -113,7 +126,7 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null
 const S={token:ls('t7_token'),me:null,tab:ls('t7_tab')||'chat',
  loginMode:'staff',err:'',busy:false,units:[],items:[],issues:[],ideas:[],msgs:[],lastMsg:0,seenMsg:+(ls('t7_seen')||0),
  issueFilter:'open',issueApt:'',ideaFilter:'new',stockQ:'',stockShop:false,pending:null,photos:{},
- rFrom:monthStart(),rTo:isoDay(new Date()),rMoves:null};
+ gm:[],gMails:null,gSet:null,gQ:'',gOpen:true,rFrom:monthStart(),rTo:isoDay(new Date()),rMoves:null};
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isoDay(d){const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)}
 function monthStart(){const d=new Date();return isoDay(new Date(d.getFullYear(),d.getMonth(),1))}
@@ -137,7 +150,7 @@ async function rpc(fn,args){
  const txt=await r.text();let d=null;try{d=txt?JSON.parse(txt):null}catch(e){}
  if(!r.ok){const m=(d&&(d.message||d.hint))||txt||'';
   if(m.includes('ops:auth')){signOutLocal();throw new Error('')}
-  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty','ops:locked':'locked'};
+  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty','ops:locked':'locked','ops:nogabbai':'noGabbai','ops:email':'badEmail','ops:amount':'badAmount','ops:nokey':'noKey','ops:nofrom':'noFrom'};
   const k=Object.keys(map).find(x=>m.includes(x));throw new Error(k?t(map[k]):(m||t('netErr')))}
  return d}
 const api=(fn,args)=>rpc(fn,Object.assign({p_token:S.token},args||{}));
@@ -158,6 +171,12 @@ async function managerLogin(){
  try{const tok=setup?await rpc('ops_manager_setup',{p_user:u,p_pass:pass,p_name:dn}):await rpc('ops_manager_pass_login',{p_user:u,p_pass:pass,p_name:dn});
   if(!tok)throw new Error(t('wrong'));ls('t7_mname',dn);await afterLogin(tok)}
  catch(e){S.err=e.message||t('netErr');S.busy=false;if(e.message===t('noMgr'))S.hasManager=false;render()}}
+async function gabbaiLogin(){
+ const name=$('#gName').value.trim(),pass=$('#gPass').value;ls('t7_gname',name);
+ if(!name){S.err=t('needName');render();return}
+ S.busy=true;S.err='';render();
+ try{const tok=await rpc('g_login',{p_name:name,p_pass:pass});if(!tok)throw new Error(t('wrong'));await afterLogin(tok)}
+ catch(e){S.err=e.message;S.busy=false;render()}}
 async function checkManager(){try{const st=await rpc('ops_status',{});S.hasManager=!!st.has_manager}catch(e){S.hasManager=null}render()}
 async function afterLogin(tok){S.token=tok;ls('t7_token',tok);S.busy=false;S.err='';await boot()}
 function signOutLocal(){S.token=null;S.me=null;REV=null;ls('t7_token',null);stopPoll();render()}
@@ -167,6 +186,7 @@ async function logout(){try{await api('ops_logout')}catch(e){}signOutLocal()}
 async function boot(){
  if(!S.token){render();return}
  try{S.me=await api('ops_me')}catch(e){S.bootErr=e.message;render();return}
+ if(S.me.role==='gabbai'){if(!['members','mails','settings'].includes(S.tab))S.tab='members';render();await gLoad();render();return}
  if(S.me.role!=='manager'&&S.tab==='reports')S.tab='chat';
  render();
  await Promise.all([loadUnits(),loadItems(),loadIssues(),loadIdeas(),loadMsgs()]).catch(e=>e.message&&toast(e.message));
@@ -254,21 +274,23 @@ function drawRec(){const el=$('#recBox');if(!el)return;
  el.innerHTML=`<button class="btn soft block" onclick="startRec()">${ic('mic','s')}${esc(t('record'))}</button>`}
 
 /* ---------------- Darstellung ---------------- */
-const TABS={chat:'chat',issues:'tool',ideas:'bulb',stock:'box',units:'room',reports:'chart',settings:'sliders'};
+const TABS={members:'users',mails:'mail',chat:'chat',issues:'tool',ideas:'bulb',stock:'box',units:'room',reports:'chart',settings:'sliders'};
 function render(){
  const app=$('#app');
  if(!S.token||!S.me){setBar(false);app.innerHTML=S.token?`<main><div class="empty">${S.bootErr?ic('alert')+esc(S.bootErr)+`<button class="btn soft sm" onclick="S.bootErr='';render();boot()">${ic('refresh','s')}</button>`:''}</div></main>`:loginView();return}
- const tabs=['chat','issues','ideas','stock','units'];if(S.me.role==='manager')tabs.push('reports');tabs.push('settings');
- if(!tabs.includes(S.tab))S.tab='chat';
+ const GB=S.me.role==='gabbai';
+ const tabs=GB?['members','mails','settings']:['chat','issues','ideas','stock','units'];if(S.me.role==='manager')tabs.push('reports');if(!GB)tabs.push('settings');
+ if(!tabs.includes(S.tab))S.tab=tabs[0];
  const chat=S.tab==='chat',oc=openCount(),ni=S.me.role==='manager'?newIdeas():0;
- app.innerHTML=`${chat?'':`<div class="top"><h1>${esc(t(S.tab))}</h1><div class="who"><b>${esc(S.me.name)}</b>${esc(t(S.me.role==='manager'?'manager':'staff'))}</div></div>`}
+ app.innerHTML=`${chat?'':`<div class="top"><h1>${esc(t(S.tab))}</h1><div class="who"><b>${esc(S.me.name)}</b>${esc(t(S.me.role==='manager'?'manager':S.me.role==='gabbai'?'gabbai':'staff'))}</div></div>`}
  <main id="main" ${chat?'style="padding:0;overflow:hidden"':''}>${view()}</main>
  ${fab()}
  <nav class="tabs">${tabs.map(k=>`<button id="tab-${k}" class="${S.tab===k?'on':''}" onclick="go('${k}')">${ic(TABS[k])}<span>${esc(t(k))}</span>${
    k==='chat'?'<span class="badge wab" id="chatBadge" hidden></span>':''}${k==='issues'&&oc?`<span class="badge">${oc}</span>`:''}${k==='ideas'&&ni?`<span class="badge">${ni}</span>`:''}</button>`).join('')}</nav>`;
  if(chat)renderMsgs(false);
- setBar(chat);updateBadge();fillPhotos($('#main'))}
-function fab(){if(S.tab==='issues')return `<button class="fab" aria-label="${esc(t('newIssue'))}" onclick="newIssue(S.issueApt)">${ic('plus')}</button>`;
+ setBar(chat);updateBadge();fillPhotos($('#main'));if(S.tab==='settings'&&S.me.role==='manager')gpState()}
+function fab(){if(S.tab==='members')return `<button class="fab" aria-label="${esc(t('newMember'))}" onclick="editMember()">${ic('plus')}</button>`;
+ if(S.tab==='issues')return `<button class="fab" aria-label="${esc(t('newIssue'))}" onclick="newIssue(S.issueApt)">${ic('plus')}</button>`;
  if(S.tab==='ideas')return `<button class="fab" aria-label="${esc(t('newIdea'))}" onclick="newIdea()">${ic('plus')}</button>`;
  if(S.tab==='stock'&&S.me.role==='manager')return `<button class="fab" aria-label="${esc(t('newItem'))}" onclick="editItem()">${ic('plus')}</button>`;
  if(S.tab==='units'&&S.me.role==='manager')return `<button class="fab" aria-label="${esc(t('newRoom'))}" onclick="editRoom()">${ic('plus')}</button>`;return ''}
@@ -276,8 +298,8 @@ function fab(){if(S.tab==='issues')return `<button class="fab" aria-label="${esc
 let _bar='';function setBar(chat){if(!NATIVE)return;const k=chat?'chat':'page';if(k===_bar)return;_bar=k;
  try{const SBp=window.Capacitor.Plugins.StatusBar;if(!SBp)return;SBp.setStyle({style:chat?'DARK':'LIGHT'}).catch(()=>{});
   SBp.setBackgroundColor&&SBp.setBackgroundColor({color:chat?'#008069':'#f6f4ef'}).catch(()=>{})}catch(e){}}
-function go(k){S.tab=k;ls('t7_tab',k);if(k==='reports')S.rMoves=null;render();$('#main')&&($('#main').scrollTop=0);if(k==='chat')startPoll()}
-function view(){return({chat:chatView,issues:issuesView,ideas:ideasView,stock:stockView,units:unitsView,reports:reportsView,settings:settingsView}[S.tab]||chatView)()}
+function go(k){S.tab=k;ls('t7_tab',k);if(k==='reports')S.rMoves=null;if(k==='mails')S.gMails=null;render();$('#main')&&($('#main').scrollTop=0);if(k==='chat')startPoll()}
+function view(){return({members:membersView,mails:mailsView,chat:chatView,issues:issuesView,ideas:ideasView,stock:stockView,units:unitsView,reports:reportsView,settings:settingsView}[S.tab]||chatView)()}
 /* Code fields: an eye button shows / hides what was typed. */
 function pw(input){return `<div class="pw">${input}<button type="button" class="eyeb" aria-label="Code anzeigen" onclick="togglePw(this)">${ic('eye')}</button></div>`}
 function togglePw(b){const i=b.parentNode.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';b.innerHTML=ic(show?'eyeoff':'eye');b.setAttribute('aria-label',show?'Code verbergen':'Code anzeigen');i.focus()}
@@ -288,10 +310,14 @@ function sheet(html){closeSheet();const bg=document.createElement('div');bg.clas
 function closeSheet(){if(REC)stopRec();document.querySelectorAll('.sheetbg').forEach(x=>x.remove());if(S.dirty)setTimeout(safeRender,0)}
 function unitOptions(sel){return `<option value="">${esc(t('noRoom'))}</option>`+S.units.map(u=>`<option value="${esc(u.id)}" ${u.id===sel?'selected':''}>${esc(u.name)}</option>`).join('')}
 
-function loginView(){const st=S.loginMode==='staff';return `<main style="padding:0"><div class="login">
+function loginView(){const st=S.loginMode==='staff',gb=S.loginMode==='gabbai';return `<main style="padding:0"><div class="login">
  <div class="brand"><div class="mark">Tempelgasse 7</div><div class="rule"></div><div class="sub">Team</div></div>
- <div class="seg"><button class="${st?'on':''}" onclick="S.loginMode='staff';S.err='';render()">${esc(t('staff'))}</button><button class="${st?'':'on'}" onclick="S.loginMode='manager';S.err='';render();checkManager()">${esc(t('manager'))}</button></div>
- ${st?`
+ <div class="seg"><button class="${st?'on':''}" onclick="S.loginMode='staff';S.err='';render()">${esc(t('staff'))}</button><button class="${S.loginMode==='manager'?'on':''}" onclick="S.loginMode='manager';S.err='';render();checkManager()">${esc(t('manager'))}</button><button class="${gb?'on':''}" onclick="S.loginMode='gabbai';S.err='';render()">${esc(t('gabbai'))}</button></div>
+ ${gb?`
+  <label class="f">${esc(t('yourName'))}</label><input class="inp" id="gName" autocomplete="given-name" value="${esc(ls('t7_gname')||'')}">
+  <label class="f">${esc(t('gabbaiCode'))}</label>${pw(`<input class="inp" id="gPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')gabbaiLogin()">`)}
+  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
+  <button class="btn block" style="margin-top:22px" ${S.busy?'disabled':''} onclick="gabbaiLogin()">${esc(t('login'))}</button>`:st?`
   <label class="f">${esc(t('yourName'))}</label><input class="inp" id="lName" autocomplete="given-name" value="${esc(ls('t7_name')||'')}">
   <label class="f">${esc(t('teamCode'))}</label>${pw(`<input class="inp" id="lPass" type="password" autocapitalize="none" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffLogin()">`)}
   ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
@@ -566,6 +592,92 @@ function downloadCsv(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download=`tempelgasse7-bericht_${S.rFrom}_${S.rTo}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 
+/* ---------------- Gabbai: Mitglieder, offene Beträge, E-Mails ---------------- */
+function eur(n){return new Intl.NumberFormat('de-AT',{style:'currency',currency:'EUR'}).format(+n||0)}
+async function gLoad(){try{S.gm=await api('g_members_list')||[]}catch(e){e.message&&toast(e.message)}}
+function balPill(b){b=+b||0;return b>0?`<span class="pill red nodot">${esc(eur(b))}</span>`:b<0?`<span class="pill green nodot">${esc(t('credit'))} ${esc(eur(-b))}</span>`:`<span class="pill grey nodot">${esc(t('settled'))}</span>`}
+function membersView(){const q=S.gQ.toLowerCase();
+ let list=S.gm.filter(m=>!q||[m.name,m.email,m.phone].some(x=>(x||'').toLowerCase().includes(q)));
+ const openN=S.gm.filter(m=>+m.balance>0).length;if(S.gOpen)list=list.filter(m=>+m.balance>0);
+ const total=S.gm.reduce((a,m)=>a+Math.max(0,+m.balance||0),0);
+ return `<div class="stats" style="margin-bottom:12px"><div class="stat"><div class="v" style="color:var(--red)">${esc(eur(total))}</div><div class="l">${esc(t('totalOpen'))}</div></div>
+  <div class="stat"><div class="v">${openN}</div><div class="l">${esc(t('open2'))} · ${esc(t('members'))}</div></div></div>
+ ${searchBox(S.gQ,"S.gQ=this.value;clearTimeout(window._gq);window._gq=setTimeout(()=>{render();const x=$('.search input');x.focus();x.setSelectionRange(x.value.length,x.value.length)},250)")}
+ <div class="seg"><button class="${S.gOpen?'on':''}" onclick="S.gOpen=true;render()">${esc(t('open2'))}<span class="c">${openN}</span></button><button class="${S.gOpen?'':'on'}" onclick="S.gOpen=false;render()">${esc(t('allMembers'))}<span class="c">${S.gm.length}</span></button></div>
+ ${list.length?`<div class="group">${list.map(m=>`<button class="cell ind" onclick="memberSheet(${m.id})"><span class="tile">${ic('user')}</span>
+  <div class="grow"><div class="t1">${esc(m.name)}</div><div class="t2">${m.email?esc(m.email):`<span style="color:var(--amber)">${esc(t('noEmail'))}</span>`}</div></div>
+  ${balPill(m.balance)}${ic('chev','s chev')}</button>`).join('')}</div>`
+  :`<div class="empty">${ic('users')}${esc(S.gOpen&&S.gm.length?t('nobodyOpen'):t('noMembers'))}${S.gm.length?'':`<button class="btn sm" onclick="editMember()">${ic('plus','s')}${esc(t('newMember'))}</button>`}</div>`}`}
+function editMember(id){const m=id?S.gm.find(x=>x.id===id):{name:'',email:'',phone:'',note:''};
+ sheet(`${sheadX(esc(t(id?'editMember':'newMember')))}
+ <label class="f">${esc(t('name'))}</label><input class="inp" id="gmName" value="${esc(m.name)}" maxlength="100">
+ <label class="f">${esc(t('email'))}</label><input class="inp" id="gmEmail" type="email" inputmode="email" autocapitalize="none" value="${esc(m.email||'')}">
+ <label class="f">${esc(t('phone'))}</label><input class="inp" id="gmPhone" type="tel" value="${esc(m.phone||'')}">
+ <label class="f">${esc(t('memberNote'))}</label><input class="inp" id="gmNote" value="${esc(m.note||'')}">
+ <div id="gmErr"></div>
+ <button class="btn block" style="margin-top:20px" onclick="saveMember(${id||0})">${esc(t('save'))}</button>
+ ${id?`<button class="btn danger block" style="margin-top:10px" onclick="delMember(${id})">${ic('trash','s')}${esc(t('del'))}</button>`:''}`)}
+async function saveMember(id){const p={name:$('#gmName').value.trim(),email:$('#gmEmail').value.trim(),phone:$('#gmPhone').value.trim(),note:$('#gmNote').value.trim()};
+ if(!p.name){$('#gmName').focus();return}if(id)p.id=id;
+ try{const nid=await api('g_member_save',{p});closeSheet();toast(t('saved'));await gLoad();render();if(!id)memberSheet(nid)}
+ catch(e){$('#gmErr').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function delMember(id){if(!confirm(t('delMemberQ')))return;try{await api('g_member_delete',{p_id:id});closeSheet();await gLoad();render()}catch(e){toast(e.message)}}
+async function memberSheet(id){const m=S.gm.find(x=>x.id===id);if(!m)return;
+ const bg=sheet(`<div class="shead"><div class="grow"><h3 style="font-size:19px">${esc(m.name)}</h3><div class="mute" style="margin-top:3px">${m.email?esc(m.email):esc(t('noEmail'))}${m.phone?' · '+esc(m.phone):''}</div></div>
+  <button class="xbtn" onclick="editMember(${id})" aria-label="${esc(t('editMember'))}">${ic('edit')}</button><button class="xbtn" onclick="closeSheet()">${ic('x')}</button></div>
+ <div class="card" style="margin-top:10px;display:flex;align-items:center;gap:12px"><div class="grow"><div class="mute">${esc(t('balance'))}</div><div style="font-size:26px;font-weight:600;letter-spacing:-.02em;color:${+m.balance>0?'var(--red)':'var(--green)'}">${esc(eur(Math.abs(+m.balance)))}${+m.balance<0?` <span class="mute">${esc(t('credit'))}</span>`:''}</div></div>
+  ${m.last_mail?`<div class="mute" style="text-align:end;font-size:12.5px">${esc(t('lastMail'))}<br>${esc(fmt(m.last_mail,{day:'2-digit',month:'2-digit',year:'2-digit'}))}</div>`:''}</div>
+ <div class="row" style="gap:8px"><button class="btn grow" onclick="entryForm(${id},'charge')">${ic('plus','s')}${esc(t('addCharge'))}</button><button class="btn ok grow" onclick="entryForm(${id},'payment')">${ic('check','s')}${esc(t('addPayment'))}</button></div>
+ <div id="geForm"></div>
+ <div class="sec">${esc(t('history2'))}</div><div id="geList"><div class="mute" style="padding:6px">…</div></div>`);
+ try{const es=await api('g_entries_list',{p_member:id})||[];const el=bg.querySelector('#geList');if(!el)return;
+  el.innerHTML=es.length?`<div class="group">${es.map(e=>`<div class="cell"><div class="grow"><div class="t1" style="font-weight:500">${esc(e.what||t(e.kind))}</div>
+   <div class="t2">${esc(fmt(e.on_date,{day:'2-digit',month:'2-digit',year:'numeric'}))} · ${esc(e.by_name)}</div></div>
+   <div class="qty" style="font-size:16px;color:${e.kind==='charge'?'var(--red)':'var(--green)'}">${e.kind==='charge'?'':'− '}${esc(eur(e.amount))}</div>
+   <button class="xbtn" style="width:28px;height:28px" onclick="delEntry(${e.id},${id})" aria-label="${esc(t('del'))}">${ic('x','s')}</button></div>`).join('')}</div>`
+   :`<div class="mute" style="padding:4px 6px">${esc(t('noEntries'))}</div>`}catch(e){toast(e.message)}}
+function entryForm(id,kind){const el=$('#geForm');if(!el)return;
+ el.innerHTML=`<div class="card" style="margin-top:12px"><b>${esc(t(kind==='charge'?'addCharge':'addPayment'))}</b>
+  <div class="row"><div class="grow"><label class="f">${esc(t(kind))} (€)</label><input class="inp" id="geAmt" type="text" inputmode="decimal" placeholder="0,00"></div>
+  <div class="grow"><label class="f">${esc(t('date'))}</label><input class="inp" id="geDate" type="date" value="${isoDay(new Date())}"></div></div>
+  <label class="f">${esc(t(kind==='charge'?'what':'payWhat'))}</label><input class="inp" id="geWhat" maxlength="200">
+  <div id="geErr"></div>
+  <button class="btn ${kind==='charge'?'':'ok'} block" style="margin-top:14px" onclick="saveEntry(${id},'${kind}')">${esc(t('save'))}</button></div>`;
+ $('#geAmt').focus()}
+async function saveEntry(id,kind){const amt=parseFloat(($('#geAmt').value||'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'));
+ if(!(amt>0)){$('#geErr').innerHTML=`<div class="err">${esc(t('badAmount'))}</div>`;return}
+ try{await api('g_entry_add',{p_member:id,p_kind:kind,p_amount:Math.round(amt*100)/100,p_what:$('#geWhat').value.trim(),p_date:$('#geDate').value||null});
+  toast(t('saved'));await gLoad();render();memberSheet(id)}
+ catch(e){$('#geErr').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function delEntry(eid,id){if(!confirm(t('delEntryQ')))return;try{await api('g_entry_delete',{p_id:eid});await gLoad();render();memberSheet(id)}catch(e){toast(e.message)}}
+function mailsView(){
+ if(S.gMails===null){api('g_mails_list').then(r=>{S.gMails=r||[];if(S.tab==='mails')render()}).catch(e=>{S.gMails=[];toast(e.message)});return `<div class="empty">…</div>`}
+ const ST={sent:['stSent','green'],pending:['stPending','amber'],error:['stError','red'],unknown:['stUnknown','grey']},K={monthly:'kMonthly',manual:'kManual',test:'kTest'};
+ const openN=S.gm.filter(m=>+m.balance>0&&m.email).length;
+ return `<div class="card mute" style="line-height:1.5">${ic('clock','s')} ${esc(t('autoInfo'))}</div>
+ <button class="btn block" onclick="sendNow()" ${openN?'':'disabled'}>${ic('mail','s')}${esc(t('sendNow'))} (${openN})</button>
+ <div class="sec">${ic('mail','s')}${esc(t('mailLog'))}<span class="n"><button class="xbtn" style="width:28px;height:28px" onclick="S.gMails=null;render()">${ic('refresh','s')}</button></span></div>
+ ${S.gMails.length?`<div class="group">${S.gMails.map(x=>{const [l,c]=ST[x.status]||ST.unknown;return `<div class="cell"><div class="grow"><div class="t1">${esc(x.name||x.email)}</div>
+  <div class="t2">${esc(fmt(x.at))} · ${esc(t(K[x.kind]||'kManual'))}${x.amount?' · '+esc(eur(x.amount)):''}${x.name?' · '+esc(x.email):''}</div>${x.info?`<div class="t2" style="color:var(--red)">${esc(x.info)}</div>`:''}</div>
+  <span class="pill ${c}">${esc(t(l))}</span></div>`}).join('')}</div>`:`<div class="empty">${ic('mail')}${esc(t('noMails'))}</div>`}`}
+async function sendNow(){const n=S.gm.filter(m=>+m.balance>0&&m.email).length;if(!n){toast(t('nobodyOpen'));return}
+ if(!confirm(`${t('sendNowQ')} (${n})?`))return;
+ try{const c=await api('g_send_now');toast(`${c} ${t('sentN')}`);S.gMails=null;await gLoad();setTimeout(()=>{S.gMails=null;if(S.tab==='mails')render()},4000);render()}catch(e){toast(e.message)}}
+function gSettingsCard(){if(!S.gSet){api('g_settings').then(r=>{S.gSet=r;if(S.tab==='settings')render()}).catch(e=>toast(e.message));return `<div class="empty">…</div>`}
+ const g=S.gSet;return `<div class="sec">${ic('mail','s')}${esc(t('mailSettings'))}</div><div class="card">
+  ${g.has_key?`<span class="pill green">${esc(t('keyOk'))}</span>`:`<div class="err" style="margin:0">${esc(t('keyMissing'))}</div>`}
+  <label class="f">${esc(t('provider'))}</label><select class="inp" id="gsProv"><option value="brevo" ${g.provider==='brevo'?'selected':''}>Brevo</option><option value="resend" ${g.provider==='resend'?'selected':''}>Resend</option></select>
+  <label class="f">${esc(t('fromName'))}</label><input class="inp" id="gsName" value="${esc(g.from_name||'')}">
+  <label class="f">${esc(t('fromEmail'))}</label><input class="inp" id="gsFrom" type="email" autocapitalize="none" value="${esc(g.from_email||'')}">
+  <label class="f">${esc(t('payInfo'))}</label><textarea class="inp" id="gsPay" placeholder="Bitte überweisen an: IBAN AT00 0000 0000 0000 0000, Synagoge Tempelgasse 7">${esc(g.pay_info||'')}</textarea>
+  <label class="row" style="margin-top:12px;font-size:14px;color:var(--ink2)"><input type="checkbox" id="gsMon" ${g.monthly?'checked':''}> ${esc(t('monthlyOn'))}</label>
+  <div id="gsMsg"></div><button class="btn block" style="margin-top:14px" onclick="saveGSettings()">${esc(t('save'))}</button>
+  <label class="f" style="margin-top:20px">${esc(t('testMail'))}</label><div class="row"><input class="inp grow" id="gsTest" type="email" autocapitalize="none" value="${esc(g.from_email||'')}"><button class="btn soft" onclick="sendTest()">${esc(t('sendTest'))}</button></div>
+  <div id="gtMsg"></div></div>`}
+async function saveGSettings(){const p={provider:$('#gsProv').value,from_name:$('#gsName').value,from_email:$('#gsFrom').value,pay_info:$('#gsPay').value,monthly:$('#gsMon').checked};
+ try{await api('g_settings_save',{p});S.gSet=Object.assign(S.gSet,p);$('#gsMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}catch(e){$('#gsMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function sendTest(){try{await api('g_send_test',{p_to:$('#gsTest').value.trim()});$('#gtMsg').innerHTML=`<div class="okmsg">${esc(t('testSent'))}</div>`}catch(e){$('#gtMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+
 /* ---------------- Mehr / Einstellungen ---------------- */
 function settingsView(){const mgr=S.me.role==='manager';return `
  ${mgr?`<div class="sec">${ic('key','s')}${esc(t('staffPass'))}</div><div class="card">${S.me.has_pass?'':`<div class="err" style="margin:0 0 10px">${esc(t('noPassYet'))}</div>`}
@@ -575,10 +687,19 @@ function settingsView(){const mgr=S.me.role==='manager';return `
   <div id="spMsg"></div><button class="btn block" style="margin-top:14px" onclick="setStaffPass()">${esc(t('setPass'))}</button></div>
  <div class="sec">${ic('lock','s')}${esc(t('mgrLogin'))}</div><div class="card">
   <label class="f" style="margin-top:0">${esc(t('newCode'))}</label>${pw(`<input class="inp" id="mlPass" type="password" inputmode="numeric" autocomplete="new-password">`)}
-  <div id="mlMsg"></div><button class="btn block" style="margin-top:14px" onclick="setMgrLogin()">${esc(t('save'))}</button></div>`:''}
+  <div id="mlMsg"></div><button class="btn block" style="margin-top:14px" onclick="setMgrLogin()">${esc(t('save'))}</button></div>
+ <div class="sec">${ic('users','s')}${esc(t('gabbaiPass'))}</div><div class="card"><div id="gpState" class="mute" style="margin-bottom:6px"></div>
+  <div class="mute">${esc(t('gabbaiHint'))}</div>
+  <label class="f">${esc(t('newCode'))}</label>${pw(`<input class="inp" id="gpPass" type="password" autocomplete="new-password" autocapitalize="none">`)}
+  <div id="gpMsg"></div><button class="btn block" style="margin-top:14px" onclick="setGabbaiPass()">${esc(t('save'))}</button></div>`:''}
+ ${S.me.role==='gabbai'?gSettingsCard():''}
  ${NATIVE?'':`<div class="sec">${ic('phone','s')}${esc(t('install'))}</div><div class="card mute" style="line-height:1.55">${esc(t('installHint'))}</div>`}
  <button class="btn danger block" style="margin-top:18px" onclick="logout()">${ic('logout','s')}${esc(t('logout'))}</button>
  <p class="mute" style="text-align:center;margin-top:22px;font-size:12px;letter-spacing:.08em">TEMPELGASSE 7 · TEAM · V1</p>`}
+async function setGabbaiPass(){const p=$('#gpPass').value;
+ try{await api('g_set_pass',{p_pass:p});$('#gpPass').value='';$('#gpMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`;gpState()}
+ catch(e){$('#gpMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function gpState(){const el=$('#gpState');if(!el)return;try{const h=await api('g_has_pass');el.innerHTML=h?`<span class="pill green">${esc(t('gabbaiSet'))}</span>`:`<span class="pill amber">${esc(t('gabbaiNotSet'))}</span>`}catch(e){}}
 async function setMgrLogin(){const u='admin',p=$('#mlPass').value;
  try{await api('ops_set_manager_login',{p_user:u,p_pass:p});$('#mlPass').value='';$('#mlMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}
  catch(e){$('#mlMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
