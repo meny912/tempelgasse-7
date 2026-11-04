@@ -46,7 +46,7 @@ const T={
  mailSettings:'E-Mail-Versand',fromName:'Absender-Name',fromEmail:'Absender-E-Mail (bei Brevo bestätigt)',payInfo:'Zahlungsinfo im E-Mail (z. B. IBAN)',monthlyOn:'Monatliche Erinnerung aktiv',
  provider:'Mail-Dienst',keyOk:'API-Schlüssel ist hinterlegt',keyMissing:'API-Schlüssel fehlt noch (wird einmalig in Supabase → Vault als „mail_api_key“ eingetragen)',
  testMail:'Test-E-Mail senden an',sendTest:'Test senden',testSent:'Test-E-Mail wird gesendet',noKey:'Der Mail-Dienst ist noch nicht eingerichtet (API-Schlüssel fehlt)',noFrom:'Bitte zuerst die Absender-E-Mail eintragen',
- stSent:'Gesendet',stPending:'Wird gesendet',stError:'Fehler',stUnknown:'Unklar',kMonthly:'Monatlich',kManual:'Manuell',kTest:'Test',lastMail:'Letzte E-Mail',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
+ stSent:'Gesendet',stPending:'Wird gesendet',stError:'Fehler',stUnknown:'Unklar',kMonthly:'Monatlich',kManual:'Manuell',kTest:'Test',lastMail:'Letzte E-Mail',sendOne:'Erinnerung per E-Mail senden',sendOneQ:'Erinnerung jetzt an diese Adresse senden',mailSent:'E-Mail wird gesendet',delMailQ:'Diesen Eintrag aus der Liste löschen?',noEmailErr:'Dieses Mitglied hat keine E-Mail-Adresse',noBalance:'Nichts offen — keine Erinnerung nötig',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -150,7 +150,7 @@ async function rpc(fn,args){
  const txt=await r.text();let d=null;try{d=txt?JSON.parse(txt):null}catch(e){}
  if(!r.ok){const m=(d&&(d.message||d.hint))||txt||'';
   if(m.includes('ops:auth')){signOutLocal();throw new Error('')}
-  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty','ops:locked':'locked','ops:nogabbai':'noGabbai','ops:email':'badEmail','ops:amount':'badAmount','ops:nokey':'noKey','ops:nofrom':'noFrom'};
+  const map={'ops:badpass':'wrong','ops:name':'needName','ops:nopass':'noPass','ops:forbidden':'forbidden','ops:notenough':'notEnough','ops:short8':'short8','ops:short':'short','ops:hasmgr':'hasMgr','ops:nomgr':'noMgr','ops:empty':'ideaEmpty','ops:locked':'locked','ops:nogabbai':'noGabbai','ops:email':'badEmail','ops:amount':'badAmount','ops:nokey':'noKey','ops:nofrom':'noFrom','ops:noemail':'noEmailErr','ops:nobalance':'noBalance'};
   const k=Object.keys(map).find(x=>m.includes(x));throw new Error(k?t(map[k]):(m||t('netErr')))}
  return d}
 const api=(fn,args)=>rpc(fn,Object.assign({p_token:S.token},args||{}));
@@ -628,6 +628,8 @@ async function memberSheet(id){const m=S.gm.find(x=>x.id===id);if(!m)return;
  <div class="card" style="margin-top:10px;display:flex;align-items:center;gap:12px"><div class="grow"><div class="mute">${esc(t('balance'))}</div><div style="font-size:26px;font-weight:600;letter-spacing:-.02em;color:${+m.balance>0?'var(--red)':'var(--green)'}">${esc(eur(Math.abs(+m.balance)))}${+m.balance<0?` <span class="mute">${esc(t('credit'))}</span>`:''}</div></div>
   ${m.last_mail?`<div class="mute" style="text-align:end;font-size:12.5px">${esc(t('lastMail'))}<br>${esc(fmt(m.last_mail,{day:'2-digit',month:'2-digit',year:'2-digit'}))}</div>`:''}</div>
  <div class="row" style="gap:8px"><button class="btn grow" onclick="entryForm(${id},'charge')">${ic('plus','s')}${esc(t('addCharge'))}</button><button class="btn ok grow" onclick="entryForm(${id},'payment')">${ic('check','s')}${esc(t('addPayment'))}</button></div>
+ <button class="btn ghost block" id="sendOneBtn" style="margin-top:8px" onclick="sendOne(${id})" ${m.email&&+m.balance>0?'':'disabled'}>${ic('mail','s')}${esc(t('sendOne'))}</button>
+ ${!m.email?`<div class="mute" style="font-size:12.5px;text-align:center;margin-top:4px">${esc(t('noEmailErr'))}</div>`:+m.balance>0?'':`<div class="mute" style="font-size:12.5px;text-align:center;margin-top:4px">${esc(t('noBalance'))}</div>`}
  <div id="geForm"></div>
  <div class="sec">${esc(t('history2'))}</div><div id="geList"><div class="mute" style="padding:6px">…</div></div>`);
  try{const es=await api('g_entries_list',{p_member:id})||[];const el=bg.querySelector('#geList');if(!el)return;
@@ -649,6 +651,11 @@ async function saveEntry(id,kind){const amt=parseFloat(($('#geAmt').value||'').r
  try{await api('g_entry_add',{p_member:id,p_kind:kind,p_amount:Math.round(amt*100)/100,p_what:$('#geWhat').value.trim(),p_date:$('#geDate').value||null});
   toast(t('saved'));await gLoad();render();memberSheet(id)}
  catch(e){$('#geErr').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function sendOne(id){const m=S.gm.find(x=>x.id===id);const b=$('#sendOneBtn');if(!m||!b||b.disabled)return;
+ if(!confirm(`${t('sendOneQ')}: ${m.email} (${eur(m.balance)})?`))return;b.disabled=true;
+ try{await api('g_send_one',{p_member:id});toast(t('mailSent'));S.gMails=null;await gLoad()}catch(e){toast(e.message)}
+ setTimeout(()=>{const x=$('#sendOneBtn');if(x)x.disabled=false},5000)}
+async function delMail(id){if(!confirm(t('delMailQ')))return;try{await api('g_mail_delete',{p_id:id});S.gMails=(S.gMails||[]).filter(x=>x.id!==id);await gLoad();render()}catch(e){toast(e.message)}}
 async function delEntry(eid,id){if(!confirm(t('delEntryQ')))return;try{await api('g_entry_delete',{p_id:eid});await gLoad();render();memberSheet(id)}catch(e){toast(e.message)}}
 function mailsView(){
  if(S.gMails===null){api('g_mails_list').then(r=>{S.gMails=r||[];if(S.tab==='mails')render()}).catch(e=>{S.gMails=[];toast(e.message)});return `<div class="empty">…</div>`}
@@ -659,7 +666,7 @@ function mailsView(){
  <div class="sec">${ic('mail','s')}${esc(t('mailLog'))}<span class="n"><button class="xbtn" style="width:28px;height:28px" onclick="S.gMails=null;render()">${ic('refresh','s')}</button></span></div>
  ${S.gMails.length?`<div class="group">${S.gMails.map(x=>{const [l,c]=ST[x.status]||ST.unknown;return `<div class="cell"><div class="grow"><div class="t1">${esc(x.name||x.email)}</div>
   <div class="t2">${esc(fmt(x.at))} · ${esc(t(K[x.kind]||'kManual'))}${x.amount?' · '+esc(eur(x.amount)):''}${x.name?' · '+esc(x.email):''}</div>${x.info?`<div class="t2" style="color:var(--red)">${esc(x.info)}</div>`:''}</div>
-  <span class="pill ${c}">${esc(t(l))}</span></div>`}).join('')}</div>`:`<div class="empty">${ic('mail')}${esc(t('noMails'))}</div>`}`}
+  <span class="pill ${c}">${esc(t(l))}</span><button class="xbtn" style="width:28px;height:28px" onclick="delMail(${x.id})" aria-label="${esc(t('del'))}">${ic('x','s')}</button></div>`}).join('')}</div>`:`<div class="empty">${ic('mail')}${esc(t('noMails'))}</div>`}`}
 let _sending=false;
 async function sendNow(){if(_sending)return;const n=S.gm.filter(m=>+m.balance>0&&m.email).length;if(!n){toast(t('nobodyOpen'));return}
  if(!confirm(`${t('sendNowQ')} (${n})?`))return;
