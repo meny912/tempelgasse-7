@@ -660,9 +660,10 @@ function mailsView(){
  ${S.gMails.length?`<div class="group">${S.gMails.map(x=>{const [l,c]=ST[x.status]||ST.unknown;return `<div class="cell"><div class="grow"><div class="t1">${esc(x.name||x.email)}</div>
   <div class="t2">${esc(fmt(x.at))} · ${esc(t(K[x.kind]||'kManual'))}${x.amount?' · '+esc(eur(x.amount)):''}${x.name?' · '+esc(x.email):''}</div>${x.info?`<div class="t2" style="color:var(--red)">${esc(x.info)}</div>`:''}</div>
   <span class="pill ${c}">${esc(t(l))}</span></div>`}).join('')}</div>`:`<div class="empty">${ic('mail')}${esc(t('noMails'))}</div>`}`}
-async function sendNow(){const n=S.gm.filter(m=>+m.balance>0&&m.email).length;if(!n){toast(t('nobodyOpen'));return}
+let _sending=false;
+async function sendNow(){if(_sending)return;const n=S.gm.filter(m=>+m.balance>0&&m.email).length;if(!n){toast(t('nobodyOpen'));return}
  if(!confirm(`${t('sendNowQ')} (${n})?`))return;
- try{const c=await api('g_send_now');toast(`${c} ${t('sentN')}`);S.gMails=null;await gLoad();setTimeout(()=>{S.gMails=null;if(S.tab==='mails')render()},4000);render()}catch(e){toast(e.message)}}
+ _sending=true;try{const c=await api('g_send_now');toast(`${c} ${t('sentN')}`);S.gMails=null;await gLoad();setTimeout(()=>{S.gMails=null;if(S.tab==='mails')render()},4000);render()}catch(e){toast(e.message)}finally{setTimeout(()=>{_sending=false},5000)}}
 function gSettingsCard(){if(!S.gSet){api('g_settings').then(r=>{S.gSet=r;if(S.tab==='settings')render()}).catch(e=>toast(e.message));return `<div class="empty">…</div>`}
  const g=S.gSet;return `<div class="sec">${ic('mail','s')}${esc(t('mailSettings'))}</div><div class="card">
   ${g.has_key?`<span class="pill green">${esc(t('keyOk'))}</span>`:`<div class="err" style="margin:0">${esc(t('keyMissing'))}</div>`}
@@ -672,11 +673,13 @@ function gSettingsCard(){if(!S.gSet){api('g_settings').then(r=>{S.gSet=r;if(S.ta
   <label class="f">${esc(t('payInfo'))}</label><textarea class="inp" id="gsPay" placeholder="Bitte überweisen an: IBAN AT00 0000 0000 0000 0000, Synagoge Tempelgasse 7">${esc(g.pay_info||'')}</textarea>
   <label class="row" style="margin-top:12px;font-size:14px;color:var(--ink2)"><input type="checkbox" id="gsMon" ${g.monthly?'checked':''}> ${esc(t('monthlyOn'))}</label>
   <div id="gsMsg"></div><button class="btn block" style="margin-top:14px" onclick="saveGSettings()">${esc(t('save'))}</button>
-  <label class="f" style="margin-top:20px">${esc(t('testMail'))}</label><div class="row"><input class="inp grow" id="gsTest" type="email" autocapitalize="none" value="${esc(g.from_email||'')}"><button class="btn soft" onclick="sendTest()">${esc(t('sendTest'))}</button></div>
+  <label class="f" style="margin-top:20px">${esc(t('testMail'))}</label><div class="row"><input class="inp grow" id="gsTest" type="email" autocapitalize="none" value="${esc(g.from_email||'')}"><button class="btn soft" id="gsTestBtn" onclick="sendTest()">${esc(t('sendTest'))}</button></div>
   <div id="gtMsg"></div></div>`}
 async function saveGSettings(){const p={provider:$('#gsProv').value,from_name:$('#gsName').value,from_email:$('#gsFrom').value,pay_info:$('#gsPay').value,monthly:$('#gsMon').checked};
  try{await api('g_settings_save',{p});S.gSet=Object.assign(S.gSet,p);$('#gsMsg').innerHTML=`<div class="okmsg">${esc(t('saved'))}</div>`}catch(e){$('#gsMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
-async function sendTest(){try{await api('g_send_test',{p_to:$('#gsTest').value.trim()});$('#gtMsg').innerHTML=`<div class="okmsg">${esc(t('testSent'))}</div>`}catch(e){$('#gtMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+async function sendTest(){const b=$('#gsTestBtn');if(b.disabled)return;b.disabled=true;
+ try{await api('g_send_test',{p_to:$('#gsTest').value.trim()});$('#gtMsg').innerHTML=`<div class="okmsg">${esc(t('testSent'))}</div>`}catch(e){$('#gtMsg').innerHTML=`<div class="err">${esc(e.message)}</div>`}
+ setTimeout(()=>{b.disabled=false},5000)}
 
 /* ---------------- Mehr / Einstellungen ---------------- */
 function settingsView(){const mgr=S.me.role==='manager';return `
