@@ -46,7 +46,7 @@ const T={
  mailSettings:'E-Mail-Versand',fromName:'Absender-Name',fromEmail:'Absender-E-Mail (bei Brevo bestätigt)',payInfo:'Zahlungsinfo im E-Mail (z. B. IBAN)',monthlyOn:'Monatliche Erinnerung aktiv',
  provider:'Mail-Dienst',keyOk:'API-Schlüssel ist hinterlegt',keyMissing:'API-Schlüssel fehlt noch (wird einmalig in Supabase → Vault als „mail_api_key“ eingetragen)',
  testMail:'Test-E-Mail senden an',sendTest:'Test senden',testSent:'Test-E-Mail wird gesendet',noKey:'Der Mail-Dienst ist noch nicht eingerichtet (API-Schlüssel fehlt)',noFrom:'Bitte zuerst die Absender-E-Mail eintragen',
- stSent:'Gesendet',stPending:'Wird gesendet',stError:'Fehler',stUnknown:'Unklar',kMonthly:'Monatlich',kManual:'Manuell',kTest:'Test',lastMail:'Letzte E-Mail',sendOne:'Erinnerung per E-Mail senden',sendOneQ:'Erinnerung jetzt an diese Adresse senden',mailSent:'E-Mail wird gesendet',delMailQ:'Diesen Eintrag aus der Liste löschen?',noEmailErr:'Dieses Mitglied hat keine E-Mail-Adresse',noBalance:'Nichts offen — keine Erinnerung nötig',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
+ stSent:'Gesendet',stPending:'Wird gesendet',stError:'Fehler',stUnknown:'Unklar',kMonthly:'Monatlich',kManual:'Manuell',kTest:'Test',lastMail:'Letzte E-Mail',sendOne:'Erinnerung per E-Mail senden',confirmMail:'Bestätigung per E-Mail an das Mitglied senden',kConfirm:'Zahlungsbestätigung',confirmSent:'Gespeichert — Bestätigung wird gesendet',sendOneQ:'Erinnerung jetzt an diese Adresse senden',mailSent:'E-Mail wird gesendet',delMailQ:'Diesen Eintrag aus der Liste löschen?',noEmailErr:'Dieses Mitglied hat keine E-Mail-Adresse',noBalance:'Nichts offen — keine Erinnerung nötig',locked:'Zu viele falsche Versuche. Bitte 15 Minuten warten.',
  view:'Öffnen',today:'Heute',yesterday:'Gestern',sending:'Wird gesendet…',photo:'Foto',
  kinds:{take:'nahm',break:'meldete kaputt/verbraucht:',return:'brachte zurück',add:'kaufte ein',adjust:'korrigierte'},
  icat:{sefarim:'Sefarim & Kippot',kiddush:'Kiddusch & Kerzen',hygiene:'WC & Hygiene',cleaning:'Reinigung',other:'Sonstiges'},
@@ -643,14 +643,17 @@ function entryForm(id,kind){const el=$('#geForm');if(!el)return;
   <div class="row"><div class="grow"><label class="f">${esc(t(kind))} (€)</label><input class="inp" id="geAmt" type="text" inputmode="decimal" placeholder="0,00"></div>
   <div class="grow"><label class="f">${esc(t('date'))}</label><input class="inp" id="geDate" type="date" value="${isoDay(new Date())}"></div></div>
   <label class="f">${esc(t(kind==='charge'?'what':'payWhat'))}</label><input class="inp" id="geWhat" maxlength="200">
+  ${kind==='payment'&&(S.gm.find(x=>x.id===id)||{}).email?`<label class="row" style="margin-top:12px;font-size:14px;color:var(--ink2)"><input type="checkbox" id="geConf" checked> ${esc(t('confirmMail'))}</label>`:''}
   <div id="geErr"></div>
   <button class="btn ${kind==='charge'?'':'ok'} block" style="margin-top:14px" onclick="saveEntry(${id},'${kind}')">${esc(t('save'))}</button></div>`;
  $('#geAmt').focus()}
-async function saveEntry(id,kind){const amt=parseFloat(($('#geAmt').value||'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'));
+async function saveEntry(id,kind){const sb=document.querySelector('#geForm .btn');if(sb&&sb.disabled)return;const amt=parseFloat(($('#geAmt').value||'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'));
  if(!(amt>0)){$('#geErr').innerHTML=`<div class="err">${esc(t('badAmount'))}</div>`;return}
- try{await api('g_entry_add',{p_member:id,p_kind:kind,p_amount:Math.round(amt*100)/100,p_what:$('#geWhat').value.trim(),p_date:$('#geDate').value||null});
-  toast(t('saved'));await gLoad();render();memberSheet(id)}
- catch(e){$('#geErr').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
+ if(sb)sb.disabled=true;
+ try{const eid=await api('g_entry_add',{p_member:id,p_kind:kind,p_amount:Math.round(amt*100)/100,p_what:$('#geWhat').value.trim(),p_date:$('#geDate').value||null});
+  if(kind==='payment'&&$('#geConf')&&$('#geConf').checked){try{await api('g_confirm_payment',{p_entry:eid});toast(t('confirmSent'))}catch(e){toast(e.message)}}else toast(t('saved'));
+  S.gMails=null;await gLoad();render();memberSheet(id)}
+ catch(e){if(sb)sb.disabled=false;$('#geErr').innerHTML=`<div class="err">${esc(e.message)}</div>`}}
 async function sendOne(id){const m=S.gm.find(x=>x.id===id);const b=$('#sendOneBtn');if(!m||!b||b.disabled)return;
  if(!confirm(`${t('sendOneQ')}: ${m.email} (${eur(m.balance)})?`))return;b.disabled=true;
  try{await api('g_send_one',{p_member:id});toast(t('mailSent'));S.gMails=null;await gLoad()}catch(e){toast(e.message)}
@@ -659,7 +662,7 @@ async function delMail(id){if(!confirm(t('delMailQ')))return;try{await api('g_ma
 async function delEntry(eid,id){if(!confirm(t('delEntryQ')))return;try{await api('g_entry_delete',{p_id:eid});await gLoad();render();memberSheet(id)}catch(e){toast(e.message)}}
 function mailsView(){
  if(S.gMails===null){api('g_mails_list').then(r=>{S.gMails=r||[];if(S.tab==='mails')render()}).catch(e=>{S.gMails=[];toast(e.message)});return `<div class="empty">…</div>`}
- const ST={sent:['stSent','green'],pending:['stPending','amber'],error:['stError','red'],unknown:['stUnknown','grey']},K={monthly:'kMonthly',manual:'kManual',test:'kTest'};
+ const ST={sent:['stSent','green'],pending:['stPending','amber'],error:['stError','red'],unknown:['stUnknown','grey']},K={monthly:'kMonthly',manual:'kManual',test:'kTest',confirm:'kConfirm'};
  const openN=S.gm.filter(m=>+m.balance>0&&m.email).length;
  return `<div class="card mute" style="line-height:1.5">${ic('clock','s')} ${esc(t('autoInfo'))}</div>
  <button class="btn block" onclick="sendNow()" ${openN?'':'disabled'}>${ic('mail','s')}${esc(t('sendNow'))} (${openN})</button>
